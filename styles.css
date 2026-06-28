@@ -639,6 +639,8 @@ body {
 
 .category-tabs {
     display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     background: rgba(0, 0, 0, 0.3);
     padding: 4px;
     border-radius: 10px;
@@ -1622,4 +1624,70 @@ body {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Card action buttons (Favorite & Port) */
+.card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.card-action-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.card-action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-action-btn.favorite-btn.active {
+    color: #ffd700;
+    background: rgba(253, 224, 71, 0.1);
+    border-color: rgba(253, 224, 71, 0.3);
+    box-shadow: 0 0 8px rgba(253, 224, 71, 0.2);
+}
+
+.card-action-btn.port-btn.active {
+    color: #00d2ff;
+    background: rgba(0, 210, 255, 0.1);
+    border-color: rgba(0, 210, 255, 0.3);
+    box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+}
+
+/* Empty State Card */
+.empty-state-card {
+    grid-column: 1 / -1;
+    padding: 40px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    color: var(--text-muted);
+}
+
+.empty-state-card i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-state-card h4 {
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.empty-state-card p {
+    font-size: 12px;
 }

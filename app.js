@@ -530,6 +530,8 @@ let currentQueryType = 'default'; // 'default', 'tech', 'space', 'resource', 'al
 let activeModalStock = null;
 let currentNewsTab = 'current'; // 'current', 'future'
 let currentSearchQuery = '';
+let favoriteStocks = JSON.parse(localStorage.getItem('favoriteStocks')) || [];
+let portStocks = JSON.parse(localStorage.getItem('portStocks')) || [];
 
 // Initialize on DOM loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -552,13 +554,19 @@ function renderStockGrid() {
     
     // Collect stocks based on filters
     let stocksToRender = [];
+    const allStocks = [
+        ...stockDatabase.tech.map(s => ({ ...s, sector: 'tech' })),
+        ...stockDatabase.space.map(s => ({ ...s, sector: 'space' })),
+        ...stockDatabase.resource.map(s => ({ ...s, sector: 'resource' })),
+        ...stockDatabase.infra.map(s => ({ ...s, sector: 'infra' }))
+    ];
+    
     if (currentFilter === 'all') {
-        stocksToRender = [
-            ...stockDatabase.tech.map(s => ({ ...s, sector: 'tech' })),
-            ...stockDatabase.space.map(s => ({ ...s, sector: 'space' })),
-            ...stockDatabase.resource.map(s => ({ ...s, sector: 'resource' })),
-            ...stockDatabase.infra.map(s => ({ ...s, sector: 'infra' }))
-        ];
+        stocksToRender = allStocks;
+    } else if (currentFilter === 'favorite') {
+        stocksToRender = allStocks.filter(s => favoriteStocks.includes(s.ticker));
+    } else if (currentFilter === 'port') {
+        stocksToRender = allStocks.filter(s => portStocks.includes(s.ticker));
     } else {
         stocksToRender = stockDatabase[currentFilter].map(s => ({ ...s, sector: currentFilter }));
     }
@@ -571,6 +579,34 @@ function renderStockGrid() {
             stock.name.toLowerCase().includes(lowerSearch) ||
             stock.brief.toLowerCase().includes(lowerSearch)
         );
+    }
+    
+    // Check if empty
+    if (stocksToRender.length === 0) {
+        const emptyEl = document.createElement('div');
+        emptyEl.className = 'empty-state-card';
+        
+        let icon = 'fa-folder-open';
+        let title = 'ไม่พบข้อมูลหุ้น';
+        let desc = 'ลองสืบค้นหรือพิมพ์ชื่อหุ้นใหม่อีกครั้ง';
+        
+        if (currentFilter === 'favorite') {
+            icon = 'fa-star';
+            title = 'ยังไม่มีหุ้นในรายการโปรด';
+            desc = 'คุณสามารถกดติดดาวที่ปุ่มดาวบริเวณมุมขวาล่างของการ์ดหุ้นในหน้าแรกเพื่อติดตามได้';
+        } else if (currentFilter === 'port') {
+            icon = 'fa-briefcase';
+            title = 'ยังไม่มีหุ้นในพอร์ตส่วนตัว';
+            desc = 'กดปุ่มรูปกระเป๋าเอกสารที่การ์ดหุ้นตัวที่ต้องการวิเคราะห์ผลประกอบการเพื่อติดตามสถานะได้';
+        }
+        
+        emptyEl.innerHTML = `
+            <i class="fa-solid ${icon}"></i>
+            <h4>${title}</h4>
+            <p>${desc}</p>
+        `;
+        gridContainer.appendChild(emptyEl);
+        return;
     }
     
     stocksToRender.forEach(stock => {
@@ -636,6 +672,13 @@ function createStockCard(stock, priceData) {
         trendBadge = '<span class="trending-status cooling"><i class="fa-solid fa-circle-chevron-down"></i> ปรับฐาน</span>';
     }
     
+    const isFav = favoriteStocks.includes(stock.ticker);
+    const isInPort = portStocks.includes(stock.ticker);
+    const favIconClass = isFav ? 'fa-solid' : 'fa-regular';
+    const portIconClass = isInPort ? 'fa-solid' : 'fa-regular';
+    const favActive = isFav ? 'active' : '';
+    const portActive = isInPort ? 'active' : '';
+    
     card.innerHTML = `
         <div class="card-header-stock">
             <div class="stock-ticker-group">
@@ -659,6 +702,14 @@ function createStockCard(stock, priceData) {
         </div>
         <div class="card-footer-stock">
             ${trendBadge}
+            <div class="card-actions">
+                <button class="card-action-btn favorite-btn ${favActive}" title="ติดดาว/ติดตาม">
+                    <i class="${favIconClass} fa-star"></i>
+                </button>
+                <button class="card-action-btn port-btn ${portActive}" title="เพิ่มลงพอร์ตส่วนตัว">
+                    <i class="fa-solid fa-briefcase"></i>
+                </button>
+            </div>
         </div>
     `;
     
@@ -947,6 +998,25 @@ function setupEventHandlers() {
     const stockGrid = document.getElementById('stockGrid');
     if (stockGrid) {
         stockGrid.addEventListener('click', (e) => {
+            const favBtn = e.target.closest('.favorite-btn');
+            const portBtn = e.target.closest('.port-btn');
+            
+            if (favBtn) {
+                e.stopPropagation();
+                const card = favBtn.closest('.stock-card');
+                const ticker = card.getAttribute('data-ticker');
+                toggleFavorite(ticker, favBtn);
+                return;
+            }
+            
+            if (portBtn) {
+                e.stopPropagation();
+                const card = portBtn.closest('.stock-card');
+                const ticker = card.getAttribute('data-ticker');
+                togglePort(ticker, portBtn);
+                return;
+            }
+            
             const card = e.target.closest('.stock-card');
             if (card) {
                 const ticker = card.getAttribute('data-ticker');
@@ -1044,6 +1114,10 @@ function updateInsightText() {
         text = isSurge
             ? 'ความกังวลการโจมตีระบบไฟฟ้าดาต้าเซ็นเตอร์ AI ในยุโรป หนุนดีความต้องการระบบจ่ายไฟสำรองฉุกเฉินและระบบระบายความร้อนของ Vertiv (VRT) ทะยานขึ้นสูงสุดเป็นประวัติการณ์ รับมือความผันผวนด้านการจ่ายไฟสงคราม'
             : 'หุ้นฐานรากบริษัทใหญ่ TSM และ ASML เคลื่อนไหวทรงตัวแข็งแกร่ง มีฐานรายได้มั่นคงจากการเป็นผู้ผูกขาดอุปกรณ์เครื่องฉายแสง EUV และกำลังการผลิตชิปประสิทธิภาพสูง';
+    } else if (currentFilter === 'favorite') {
+        text = 'รายการหุ้นโปรดที่คุณกำลังติดตามและวิเคราะห์ความเคลื่อนไหว สัญญาณราคาสามารถอัปเดตแบบเรียลไทม์ควบคู่กับสภาวะตลาดด้านขวา';
+    } else if (currentFilter === 'port') {
+        text = 'พอร์ตการถือครองส่วนบุคคลจำลองเพื่อตรวจสอบผลการทำงาน สามารถเช็คสัดส่วนแนวรับ-แนวต้านของหุ้นที่ถือเพื่อทำการเข้าซื้อ/ขายเพิ่มได้อย่างปลอดภัย';
     }
     
     insightEl.textContent = text;
@@ -1330,4 +1404,38 @@ function getNewsForCategory(category, tab) {
         });
     });
     return merged;
+}
+
+function toggleFavorite(ticker, btnElement) {
+    const index = favoriteStocks.indexOf(ticker);
+    if (index > -1) {
+        favoriteStocks.splice(index, 1);
+        btnElement.classList.remove('active');
+        btnElement.innerHTML = '<i class="fa-regular fa-star"></i>';
+    } else {
+        favoriteStocks.push(ticker);
+        btnElement.classList.add('active');
+        btnElement.innerHTML = '<i class="fa-solid fa-star"></i>';
+    }
+    localStorage.setItem('favoriteStocks', JSON.stringify(favoriteStocks));
+    
+    if (currentFilter === 'favorite') {
+        renderStockGrid();
+    }
+}
+
+function togglePort(ticker, btnElement) {
+    const index = portStocks.indexOf(ticker);
+    if (index > -1) {
+        portStocks.splice(index, 1);
+        btnElement.classList.remove('active');
+    } else {
+        portStocks.push(ticker);
+        btnElement.classList.add('active');
+    }
+    localStorage.setItem('portStocks', JSON.stringify(portStocks));
+    
+    if (currentFilter === 'port') {
+        renderStockGrid();
+    }
 }
