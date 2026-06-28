@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASDAQ Quantum Terminal | วิเคราะห์ข่าวสาร & ปัจจัยอนาคต</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background overlay for grid/glow effects -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="app-container">
+        <!-- Top Navigation / Status Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <i class="fa-solid fa-chart-line logo-icon"></i>
+                <div class="logo-text">
+                    <h1>NASDAQ <span>QUANTUM</span></h1>
+                    <p class="tagline">FINANCIAL ANALYTICS HUB</p>
+                </div>
+            </div>
+            
+            <!-- Real-time index simulation ticker -->
+            <div class="ticker-container">
+                <div class="ticker-track" id="tickerTrack">
+                    <span class="ticker-item"><span class="ticker-label">IXIC (Nasdaq)</span> <span class="ticker-val positive">18,252.80 +1.42% <i class="fa-solid fa-caret-up"></i></span></span>
+                    <span class="ticker-item"><span class="ticker-label">NDX (Nasdaq 100)</span> <span class="ticker-val positive">20,112.50 +1.68% <i class="fa-solid fa-caret-up"></i></span></span>
+                    <span class="ticker-item"><span class="ticker-label">TECH SECTOR</span> <span class="ticker-val positive">+2.15% <i class="fa-solid fa-caret-up"></i></span></span>
+                    <span class="ticker-item"><span class="ticker-label">SPACE SECTOR</span> <span class="ticker-val positive">+4.89% <i class="fa-solid fa-caret-up"></i></span></span>
+                    <span class="ticker-item"><span class="ticker-label">RESOURCE SECTOR</span> <span class="ticker-val negative">-0.42% <i class="fa-solid fa-caret-down"></i></span></span>
+                </div>
+            </div>
+
+            <div class="system-status">
+                <span class="pulse-indicator"></span>
+                <span class="status-text">TERMINAL ONLINE</span>
+            </div>
+        </header>
+
+        <!-- Main Navigation Bar -->
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> แผงควบคุมหุ้น (Stock Terminal)</a>
+            <a href="news.html" class="nav-link active"><i class="fa-solid fa-newspaper"></i> วิเคราะห์ข่าวสาร & ปัจจัยอนาคต (News & Catalysts)</a>
+        </nav>
+
+        <!-- Search Console (Real-time Filter) -->
+        <section class="command-section">
+            <div class="glass-card command-card">
+                <div class="card-header-terminal">
+                    <div class="terminal-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <div class="terminal-title">NASDAQ SEARCH CENTER</div>
+                </div>
+                <div class="card-body-terminal">
+                    <p class="prompt-instruction"><i class="fa-solid fa-angle-right"></i> ค้นหาชื่อหุ้น หรือ สัญลักษณ์ย่อ เพื่อกรองข้อมูลการ์ดและข่าวสารโดยทันที</p>
+                    <div class="query-form">
+                        <div class="input-wrapper">
+                            <span class="prompt-symbol"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="queryInput" placeholder="พิมพ์เพื่อค้นหา... เช่น NVDA, PLTR, Apple, Space, Semiconductor..." autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard View -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Side: Sector Summaries & Sector Momentum -->
+            <aside class="sidebar-overview">
+                <!-- Sector Momentum Card -->
+                <div class="glass-card sector-momentum-card">
+                    <h2 class="card-title"><i class="fa-solid fa-circle-nodes"></i> ภาพรวมรายกลุ่มธุรกิจ</h2>
+                    <p class="card-subtitle">ข้อมูลอัปเดตล่าสุดจากการวิเคราะห์</p>
+                    
+                    <div class="sector-list">
+                        <!-- Tech Sector -->
+                        <div class="sector-item" data-sector="tech">
+                            <div class="sector-icon tech-color"><i class="fa-solid fa-microchip"></i></div>
+                            <div class="sector-info">
+                                <div class="sector-name-row">
+                                    <span class="sector-title">กลุ่มเทคโนโลยี (Tech)</span>
+                                    <span class="sector-perf positive" id="techPerf">+2.45%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill tech-bg" style="width: 85%" id="techBar"></div>
+                                </div>
+                                <span class="sector-meta" id="techMeta">6 หุ้นยอดนิยม | โมเมนตัม: แข็งแกร่งมาก</span>
+                            </div>
+                        </div>
+
+                        <!-- Space Sector -->
+                        <div class="sector-item" data-sector="space">
+                            <div class="sector-icon space-color"><i class="fa-solid fa-rocket"></i></div>
+                            <div class="sector-info">
+                                <div class="sector-name-row">
+                                    <span class="sector-title">กลุ่มอวกาศ (Space)</span>
+                                    <span class="sector-perf positive" id="spacePerf">+4.89%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill space-bg" style="width: 92%" id="spaceBar"></div>
+                                </div>
+                                <span class="sector-meta" id="spaceMeta">5 หุ้นยอดนิยม | โมเมนตัม: ขาขึ้นแรง</span>
+                            </div>
+                        </div>
+
+                        <!-- Resource Sector -->
+                        <div class="sector-item" data-sector="resource">
+                            <div class="sector-icon resource-color"><i class="fa-solid fa-atom"></i></div>
+                            <div class="sector-info">
+                                <div class="sector-name-row">
+                                    <span class="sector-title">กลุ่มทรัพยากร (Resource)</span>
+                                    <span class="sector-perf negative" id="resourcePerf">-0.12%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill resource-bg" style="width: 48%" id="resourceBar"></div>
+                                </div>
+                                <span class="sector-meta" id="resourceMeta">5 หุ้นยอดนิยม | โมเมนตัม: ทรงตัว / ค่อยๆ ฟื้น</span>
+                            </div>
+                        </div>
+
+                        <!-- Infrastructure Sector -->
+                        <div class="sector-item" data-sector="infra">
+                            <div class="sector-icon infra-color"><i class="fa-solid fa-database"></i></div>
+                            <div class="sector-info">
+                                <div class="sector-name-row">
+                                    <span class="sector-title">กลุ่มโครงสร้างพื้นฐาน (Infra)</span>
+                                    <span class="sector-perf positive" id="infraPerf">+1.85%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill infra-bg" style="width: 78%" id="infraBar"></div>
+                                </div>
+                                <span class="sector-meta" id="infraMeta">5 หุ้นยอดนิยม | โมเมนตัม: ขยายตัวต่อเนื่อง</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terminal Insight Note -->
+                <div class="glass-card insight-card">
+                    <h3 class="insight-title"><i class="fa-solid fa-chart-line"></i> บทวิเคราะห์สภาวะตลาด</h3>
+                    <p class="insight-text" id="aiInsightText">
+                        กรุณาป้อนคำสั่งค้นหาหรือคลิกปุ่มค้นหาด่วนด้านบน เพื่อดึงข้อมูลตลาดล่าสุดและอัปเดตราคากลุ่มธุรกิจต่าง ๆ แบบไดนามิก
+                    </p>
+                </div>
+            </aside>
+
+            <!-- Right Side: Interactive News Feed -->
+            <section class="main-content-stocks">
+                <!-- Filters and Category Tabs -->
+                <div class="dashboard-controls">
+                    <div class="category-tabs">
+                        <button class="tab-btn active" data-filter="all">ทั้งหมด</button>
+                        <button class="tab-btn" data-filter="tech"><i class="fa-solid fa-microchip"></i> ข่าวเทค</button>
+                        <button class="tab-btn" data-filter="space"><i class="fa-solid fa-rocket"></i> ข่าวอวกาศ</button>
+                        <button class="tab-btn" data-filter="resource"><i class="fa-solid fa-atom"></i> ข่าวทรัพยากร</button>
+                        <button class="tab-btn" data-filter="infra"><i class="fa-solid fa-database"></i> ข่าวหุ้นฐานราก</button>
+                    </div>
+                    <div class="market-toggle-container">
+                        <button class="market-toggle-btn" id="btnMarketToggle" data-state="default">
+                            <i class="fa-solid fa-chart-line"></i> สภาวะตลาด: ปกติ (Default)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- News & Future Catalysts Board (Main View in this page) -->
+                <div class="glass-card news-board-container" style="margin-top: 0;">
+                    <div class="news-board-header">
+                        <h3 class="news-board-title"><i class="fa-solid fa-newspaper"></i> วิเคราะห์ข่าวสาร & ปัจจัยผลกระทบราคาหุ้น</h3>
+                        <div class="news-tabs">
+                            <button class="news-tab-btn active" data-news-tab="current">ข่าวสารปัจจุบัน (Current News)</button>
+                            <button class="news-tab-btn" data-news-tab="future">ปฏิทิน & ปัจจัยอนาคต (Future Catalysts)</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Current News Tab Content -->
+                    <div class="news-content-panel active" id="currentNewsPanel">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                    
+                    <!-- Future Catalysts Tab Content -->
+                    <div class="news-content-panel" id="futureNewsPanel">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- App Footer -->
+        <footer class="app-footer">
+            <p>© 2026 NASDAQ Quantum Terminal. ข้อมูลการเงินจำลองเพื่อการสาธิตการทำงาน.</p>
+        </footer>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
