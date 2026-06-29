@@ -1336,33 +1336,26 @@ function closeModal() {
 
 // Simulate small fluctuations in the top Nasdaq live ticker
 function simulateTickerChanges() {
+    // 1. Ticker Track Fluctuation
     setInterval(() => {
         const tickerTrack = document.getElementById('tickerTrack');
         if (!tickerTrack) return;
         
-        // Randomly modify index values slightly
         const tickerItems = tickerTrack.querySelectorAll('.ticker-item');
         tickerItems.forEach(item => {
             const valEl = item.querySelector('.ticker-val');
             if (!valEl) return;
             
-            const isPositive = valEl.classList.contains('positive');
-            let changeVal = parseFloat(valEl.textContent.replace(/[^0-9.-]/g, ''));
-            
-            // Random fluctuation (-0.05% to +0.05%)
             const fluctuation = (Math.random() * 0.1 - 0.05);
             
             if (valEl.textContent.includes('%')) {
-                // If it is percentage, update percentage
                 const match = valEl.textContent.match(/([+-]?[0-9.]+)\%/);
                 if (match) {
                     let currentPerc = parseFloat(match[1]);
                     currentPerc += fluctuation;
                     const cleanPercSign = currentPerc >= 0 ? '+' : '';
                     
-                    // Simple replacement
                     if (valEl.textContent.includes('IXIC') || valEl.textContent.includes('NDX')) {
-                        // Numeric index representation
                         let base = valEl.textContent.split(' ')[0];
                         let num = parseFloat(base.replace(/,/g, ''));
                         num += num * (fluctuation / 100);
@@ -1377,6 +1370,70 @@ function simulateTickerChanges() {
             }
         });
     }, 4000);
+
+    // 2. Stock Cards Real-time Fluctuation
+    setInterval(() => {
+        const sectors = ['tech', 'space', 'resource', 'infra'];
+        sectors.forEach(sector => {
+            if (!stockDatabase[sector]) return;
+            stockDatabase[sector].forEach(stock => {
+                // 30% chance to fluctuate each stock
+                if (Math.random() > 0.3) return;
+                
+                const priceData = getActivePriceData(stock);
+                const oldPrice = priceData.current;
+                
+                // Fluctuate price by -0.15% to +0.15%
+                const pctChange = (Math.random() * 0.3 - 0.15);
+                const diff = oldPrice * (pctChange / 100);
+                priceData.current += diff;
+                
+                // Adjust daily change %
+                priceData.change += pctChange;
+                
+                // Update sparkline chart array (shift left and append current)
+                priceData.chart.shift();
+                priceData.chart.push(priceData.current);
+                
+                // Find card in DOM
+                const card = document.querySelector(`.stock-card[data-ticker="${stock.ticker}"]`);
+                if (card) {
+                    const priceEl = card.querySelector('.stock-price');
+                    const changeEl = card.querySelector('.stock-change');
+                    const canvas = card.querySelector('.sparkline-canvas');
+                    
+                    if (priceEl && changeEl) {
+                        const isPositive = priceData.change >= 0;
+                        const changeSign = isPositive ? '+' : '';
+                        const changeClass = isPositive ? 'positive' : 'negative';
+                        const caretIcon = isPositive ? 'fa-caret-up' : 'fa-caret-down';
+                        
+                        priceEl.textContent = `$${priceData.current.toFixed(2)}`;
+                        changeEl.className = `stock-change ${changeClass}`;
+                        changeEl.innerHTML = `<i class="fa-solid ${caretIcon}"></i> ${changeSign}${priceData.change.toFixed(2)}%`;
+                        
+                        // Add flash animation
+                        const flashClass = diff >= 0 ? 'flash-up' : 'flash-down';
+                        card.classList.add(flashClass);
+                        setTimeout(() => {
+                            card.classList.remove(flashClass);
+                        }, 800);
+                        
+                        // Redraw sparkline
+                        if (canvas) {
+                            drawSparkline(canvas, priceData.chart, priceData.change >= 0);
+                        }
+                    }
+                    
+                    // Update P&L if in port view
+                    if (currentFilter === 'port') {
+                        updateStockCardPnL(stock.ticker, priceData);
+                        updatePortSummaryDashboard();
+                    }
+                }
+            });
+        });
+    }, 3000);
 }
 
 // Render News and Future Catalysts in the main dashboard

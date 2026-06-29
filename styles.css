@@ -1926,3 +1926,24 @@ body {
     opacity: 1;
     transform: translateX(0);
 }
+
+
+/* --- REAL-TIME PRICE FLASH STYLES --- */
+
+@keyframes flash-green {
+    0% { background-color: rgba(16, 185, 129, 0.15); box-shadow: 0 0 15px rgba(16, 185, 129, 0.1); }
+    100% { background-color: transparent; }
+}
+
+@keyframes flash-red {
+    0% { background-color: rgba(239, 68, 68, 0.15); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
+    100% { background-color: transparent; }
+}
+
+.flash-up {
+    animation: flash-green 0.8s ease-out;
+}
+
+.flash-down {
+    animation: flash-red 0.8s ease-out;
+}
