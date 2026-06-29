@@ -1558,6 +1558,8 @@ function togglePort(ticker, btnElement) {
 
 // --- PORTFOLIO DYNAMIC HELPERS ---
 
+const usdToThbRate = 33.29;
+
 function getActivePriceData(stock) {
     if (currentQueryType === 'all-surge') {
         return stock.prices.surge;
@@ -1596,26 +1598,34 @@ function createPortSummaryCard(stocks) {
     const pnlSign = pnlVal >= 0 ? '+' : '';
     const pnlPctSign = pnlPct >= 0 ? '+' : '';
     
+    const currentValueTHB = currentValue * usdToThbRate;
+    const totalCostTHB = totalCost * usdToThbRate;
+    const pnlValTHB = pnlVal * usdToThbRate;
+    
     const card = document.createElement('div');
     card.className = 'glass-card port-summary-dashboard-card';
     
     card.innerHTML = `
         <div class="port-summary-header">
             <h3><i class="fa-solid fa-chart-pie" style="color: var(--color-space);"></i> สรุปภาพรวมพอร์ตส่วนตัว</h3>
+            <div class="exchange-rate-badge"><i class="fa-solid fa-calculator"></i> 1 USD = ${usdToThbRate} THB</div>
             <span class="active-holdings-badge">${activeHoldingsCount} หุ้นที่มีการบันทึกต้นทุน</span>
         </div>
         <div class="port-summary-metrics-grid">
             <div class="summary-metric">
                 <span class="metric-lbl">มูลค่าพอร์ตปัจจุบัน</span>
                 <span class="metric-val">$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                <span class="metric-sub-val">฿${currentValueTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </div>
             <div class="summary-metric">
                 <span class="metric-lbl">ต้นทุนรวมทั้งหมด</span>
                 <span class="metric-val">$${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                <span class="metric-sub-val">฿${totalCostTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </div>
             <div class="summary-metric">
                 <span class="metric-lbl">กำไร/ขาดทุนรวม</span>
                 <span class="metric-val-pnl ${pnlClass}">${pnlSign}$${pnlVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlPctSign}${pnlPct.toFixed(2)}%)</span>
+                <span class="metric-sub-val-pnl ${pnlClass}">${pnlSign}฿${pnlValTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </div>
         </div>
         <div class="port-summary-actions">
@@ -1663,10 +1673,18 @@ function updatePortSummaryDashboard() {
     const pnlSign = pnlVal >= 0 ? '+' : '';
     const pnlPctSign = pnlPct >= 0 ? '+' : '';
     
+    const currentValueTHB = currentValue * usdToThbRate;
+    const totalCostTHB = totalCost * usdToThbRate;
+    const pnlValTHB = pnlVal * usdToThbRate;
+    
     const valText = dashboard.querySelector('.summary-metric:nth-child(1) .metric-val');
     const costText = dashboard.querySelector('.summary-metric:nth-child(2) .metric-val');
     const pnlText = dashboard.querySelector('.summary-metric:nth-child(3) .metric-val-pnl');
     const badge = dashboard.querySelector('.active-holdings-badge');
+    
+    const valTextTHB = dashboard.querySelector('.summary-metric:nth-child(1) .metric-sub-val');
+    const costTextTHB = dashboard.querySelector('.summary-metric:nth-child(2) .metric-sub-val');
+    const pnlTextTHB = dashboard.querySelector('.summary-metric:nth-child(3) .metric-sub-val-pnl');
     
     if (valText) valText.textContent = `$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     if (costText) costText.textContent = `$${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -1675,6 +1693,13 @@ function updatePortSummaryDashboard() {
         pnlText.className = `metric-val-pnl ${pnlClass}`;
     }
     if (badge) badge.textContent = `${activeHoldingsCount} หุ้นที่มีการบันทึกต้นทุน`;
+    
+    if (valTextTHB) valTextTHB.textContent = `฿${currentValueTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (costTextTHB) costTextTHB.textContent = `฿${totalCostTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (pnlTextTHB) {
+        pnlTextTHB.textContent = `${pnlSign}฿${pnlValTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        pnlTextTHB.className = `metric-sub-val-pnl ${pnlClass}`;
+    }
 }
 
 function updateStockCardPnL(ticker, priceData) {
@@ -1705,14 +1730,17 @@ function updateStockCardPnL(ticker, priceData) {
     const pnlSign = pnlVal >= 0 ? '+' : '';
     const pnlPctSign = pnlPct >= 0 ? '+' : '';
     
+    const currentValueTHB = currentValue * usdToThbRate;
+    const pnlValTHB = pnlVal * usdToThbRate;
+    
     pnlRow.innerHTML = `
         <div class="pnl-metric">
             <span class="pnl-lbl">มูลค่าปัจจุบัน:</span>
-            <span class="pnl-val">$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            <span class="pnl-val">$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="pnl-sub-val">(฿${currentValueTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</span></span>
         </div>
         <div class="pnl-metric">
             <span class="pnl-lbl">กำไร/ขาดทุน:</span>
-            <span class="pnl-val-pct ${pnlClass}">${pnlSign}$${pnlVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlPctSign}${pnlPct.toFixed(2)}%)</span>
+            <span class="pnl-val-pct ${pnlClass}">${pnlSign}$${pnlVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlPctSign}${pnlPct.toFixed(2)}%) <span class="pnl-sub-val-pct ${pnlClass}">(฿${pnlValTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</span></span>
         </div>
     `;
 }
@@ -1749,7 +1777,11 @@ function copyPortDataForAI() {
             const pnlSign = pnl >= 0 ? '+' : '';
             const pnlPctSign = pnlPct >= 0 ? '+' : '';
             
-            holdingsText += `${idx + 1}. **${stock.ticker}** (${stock.name}): ถือครอง ${shares} หุ้น | ต้นทุนเฉลี่ย $${avgCost.toFixed(2)}/หุ้น (ต้นทุนรวม $${cost.toFixed(2)}) | ราคาปัจจุบัน $${priceData.current.toFixed(2)}/หุ้น (มูลค่าปัจจุบัน $${val.toFixed(2)}) | กำไร/ขาดทุน: ${pnlSign}$${pnl.toFixed(2)} (${pnlPctSign}${pnlPct.toFixed(2)}%)\n`;
+            const costTHB = cost * usdToThbRate;
+            const valTHB = val * usdToThbRate;
+            const pnlTHB = pnl * usdToThbRate;
+            
+            holdingsText += `${idx + 1}. **${stock.ticker}** (${stock.name}): ถือครอง ${shares} หุ้น | ต้นทุนเฉลี่ย $${avgCost.toFixed(2)}/หุ้น (ต้นทุนรวม $${cost.toFixed(2)} / ฿${costTHB.toLocaleString('th-TH', {maximumFractionDigits:0})}) | ราคาปัจจุบัน $${priceData.current.toFixed(2)}/หุ้น (มูลค่าปัจจุบัน $${val.toFixed(2)} / ฿${valTHB.toLocaleString('th-TH', {maximumFractionDigits:0})}) | กำไร/ขาดทุน: ${pnlSign}$${pnl.toFixed(2)} (${pnlPctSign}${pnlPct.toFixed(2)}% / ฿${pnlTHB.toLocaleString('th-TH', {maximumFractionDigits:0})})\n`;
         } else {
             holdingsText += `${idx + 1}. **${stock.ticker}** (${stock.name}): ยังไม่ได้ระบุราคาต้นทุนเฉลี่ยและจำนวนหุ้น\n`;
         }
@@ -1761,10 +1793,14 @@ function copyPortDataForAI() {
     const totalPnLSign = totalPnL >= 0 ? '+' : '';
     const totalPnLPctSign = totalPnLPct >= 0 ? '+' : '';
     
+    const currentValueTHB = currentValue * usdToThbRate;
+    const totalCostTHB = totalCost * usdToThbRate;
+    const totalPnLTHB = totalPnL * usdToThbRate;
+    
     const aiText = `สรุปข้อมูลพอร์ตส่วนตัวของฉันสำหรับให้ AI ประมวลผลและแนะนำแนวทาง:
-- **มูลค่าพอร์ตรวมปัจจุบัน**: $${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-- **ต้นทุนรวมทั้งหมด**: $${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-- **กำไร/ขาดทุนรวมทั้งหมด**: ${totalPnLSign}$${totalPnL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${totalPnLPctSign}${totalPnLPct.toFixed(2)}%)
+- **มูลค่าพอร์ตรวมปัจจุบัน**: $${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (฿${currentValueTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})})
+- **ต้นทุนรวมทั้งหมด**: $${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (฿${totalCostTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})})
+- **กำไร/ขาดทุนรวมทั้งหมด**: ${totalPnLSign}$${totalPnL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${totalPnLPctSign}${totalPnLPct.toFixed(2)}% / ฿${totalPnLTHB.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})})
 
 **รายละเอียดรายหุ้นในพอร์ต:**
 ${holdingsText}

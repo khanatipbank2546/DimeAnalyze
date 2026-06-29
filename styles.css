@@ -1947,3 +1947,58 @@ body {
 .flash-down {
     animation: flash-red 0.8s ease-out;
 }
+
+
+/* --- SUB-VALUES THAI BAHT DISPLAY STYLES --- */
+
+.metric-sub-val {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.metric-sub-val-pnl {
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.metric-sub-val-pnl.positive {
+    color: rgba(16, 185, 129, 0.7);
+}
+
+.metric-sub-val-pnl.negative {
+    color: rgba(239, 68, 68, 0.7);
+}
+
+.pnl-sub-val {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: normal;
+    margin-left: 4px;
+}
+
+.pnl-sub-val-pct {
+    font-size: 10px;
+    font-weight: normal;
+    margin-left: 4px;
+}
+
+.pnl-sub-val-pct.positive {
+    color: rgba(16, 185, 129, 0.7);
+}
+
+.pnl-sub-val-pct.negative {
+    color: rgba(239, 68, 68, 0.7);
+}
+
+.exchange-rate-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+}
