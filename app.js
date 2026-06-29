@@ -6,7 +6,7 @@ const stockDatabase = {
             name: "NVIDIA Corporation",
             brief: "ผู้นำตลาดชิปประมวลผล AI (GPU) ที่มีส่วนแบ่งตลาดและอัตราการเติบโตระดับสูงอย่างต่อเนื่อง",
             prices: {
-                default: { current: 192.53, change: 1.89, chart: [186.20, 187.80, 185.90, 189.50, 188.10, 190.50, 192.53] },
+                default: { current: 194.53, change: 2.15, chart: [187.80, 185.90, 189.50, 188.10, 190.50, 192.53, 194.53] },
                 surge: { current: 205.10, change: 6.53, chart: [186.20, 187.80, 189.50, 192.53, 196.20, 201.50, 205.10] },
                 stable: { current: 193.10, change: 0.30, chart: [192.53, 192.80, 192.10, 193.50, 192.90, 193.40, 193.10] }
             },
@@ -89,7 +89,7 @@ const stockDatabase = {
             name: "Space Exploration Technologies Corp. (SpaceX)",
             brief: "ผู้นำระดับโลกด้านการขนส่งทางอวกาศ ดาวเทียม Starlink และระบบดาวเทียมรักษาความปลอดภัยเชิงกลยุทธ์",
             prices: {
-                default: { current: 152.77, change: 1.84, chart: [148.50, 149.20, 148.80, 150.50, 149.90, 151.20, 152.77] },
+                default: { current: 153.23, change: 2.14, chart: [149.20, 148.80, 150.50, 149.90, 151.20, 152.77, 153.23] },
                 surge: { current: 178.90, change: 17.10, chart: [152.77, 156.50, 160.20, 164.50, 168.20, 173.90, 178.90] },
                 stable: { current: 153.20, change: 0.28, chart: [152.77, 152.50, 152.90, 152.60, 153.10, 152.80, 153.20] }
             },
@@ -105,7 +105,7 @@ const stockDatabase = {
             name: "Rocket Lab USA, Inc.",
             brief: "ผู้ให้บริการส่งดาวเทียมขนาดเล็กและผลิตชิ้นส่วนยานอวกาศชั้นนำ กำลังพัฒนาจรวด Neutron ขนาดใหญ่",
             prices: {
-                default: { current: 84.54, change: 3.20, chart: [80.2, 81.5, 81.1, 82.9, 82.5, 83.8, 84.54] },
+                default: { current: 84.60, change: 3.27, chart: [81.5, 81.1, 82.9, 82.5, 83.8, 84.54, 84.60] },
                 surge: { current: 95.80, change: 13.32, chart: [80.2, 81.5, 82.9, 84.54, 87.2, 91.5, 95.8] },
                 stable: { current: 84.80, change: 0.31, chart: [84.54, 84.7, 84.4, 84.9, 84.6, 84.9, 84.8] }
             },
@@ -169,7 +169,7 @@ const stockDatabase = {
             name: "AST SpaceMobile, Inc.",
             brief: "ผู้ให้บริการเครือข่ายบรอดแบนด์ผ่านดาวเทียมวงโคจรต่ำที่เชื่อมต่อโดยตรงกับโทรศัพท์มือถือทั่วไป",
             prices: {
-                default: { current: 71.45, change: 8.92, chart: [64.2, 65.8, 67.2, 68.5, 69.1, 70.4, 71.45] },
+                default: { current: 71.80, change: 9.45, chart: [65.8, 67.2, 68.5, 69.1, 70.4, 71.45, 71.80] },
                 surge: { current: 89.50, change: 25.26, chart: [71.45, 73.8, 76.5, 79.2, 82.4, 85.9, 89.50] },
                 stable: { current: 71.80, change: 0.49, chart: [71.45, 71.2, 71.9, 71.5, 72.1, 71.7, 71.80] }
             },
