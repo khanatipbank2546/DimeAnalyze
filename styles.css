@@ -1691,3 +1691,238 @@ body {
 .empty-state-card p {
     font-size: 12px;
 }
+
+
+/* --- PORTFOLIO SYSTEM STYLES --- */
+
+.stock-card.in-port-view {
+    height: 400px;
+}
+
+.port-holding-editor {
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    margin-top: 12px;
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.port-editor-fields {
+    display: flex;
+    gap: 12px;
+}
+
+.port-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.port-field label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.port-field input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    transition: var(--transition-smooth);
+}
+
+.port-field input:focus {
+    outline: none;
+    border-color: var(--color-space);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
+}
+
+.port-calc-pnl-row {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 3px solid rgba(255, 255, 255, 0.15);
+}
+
+.port-empty-calc {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 11px;
+    text-align: center;
+    width: 100%;
+}
+
+.pnl-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pnl-lbl {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+.pnl-val {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.pnl-val-pct {
+    font-weight: 600;
+}
+
+.pnl-val-pct.positive {
+    color: var(--color-resource);
+}
+
+.pnl-val-pct.negative {
+    color: var(--color-bearish);
+}
+
+/* Portfolio Summary Dashboard Card */
+.port-summary-dashboard-card {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, rgba(16, 20, 35, 0.8) 0%, rgba(10, 12, 22, 0.9) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+.port-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 12px;
+}
+
+.port-summary-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.active-holdings-badge {
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #c084fc;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.port-summary-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.summary-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.metric-lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.metric-val-pnl {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.metric-val-pnl.positive {
+    color: var(--color-resource);
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.metric-val-pnl.negative {
+    color: var(--color-bearish);
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+.port-summary-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.btn-copy-port-ai {
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.btn-copy-port-ai:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+    background: linear-gradient(135deg, #b062f8 0%, #8547f2 100%);
+}
+
+.btn-copy-port-ai:active {
+    transform: translateY(0);
+}
+
+.copy-success-toast {
+    font-size: 12px;
+    color: var(--color-resource);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    font-weight: 500;
+}
+
+.copy-success-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}

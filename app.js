@@ -525,6 +525,7 @@ let currentNewsTab = 'current'; // 'current', 'future'
 let currentSearchQuery = '';
 let favoriteStocks = JSON.parse(localStorage.getItem('favoriteStocks')) || [];
 let portStocks = JSON.parse(localStorage.getItem('portStocks')) || [];
+let personalPortDetails = JSON.parse(localStorage.getItem('personalPortDetails')) || {};
 
 // Initialize on DOM loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -602,23 +603,14 @@ function renderStockGrid() {
         return;
     }
     
+    // If we are in port view, and there are port stocks, render the Port Summary Dashboard FIRST!
+    if (currentFilter === 'port' && stocksToRender.length > 0) {
+        const summaryCard = createPortSummaryCard(stocksToRender);
+        gridContainer.appendChild(summaryCard);
+    }
+
     stocksToRender.forEach(stock => {
-        // Select price state based on query type
-        let priceData;
-        if (currentQueryType === 'all-surge') {
-            priceData = stock.prices.surge;
-        } else if (currentQueryType === 'tech' && stock.sector === 'tech') {
-            priceData = stock.prices.surge;
-        } else if (currentQueryType === 'space' && stock.sector === 'space') {
-            priceData = stock.prices.surge;
-        } else if (currentQueryType === 'resource' && stock.sector === 'resource') {
-            priceData = stock.prices.surge;
-        } else if (currentQueryType === 'infra' && stock.sector === 'infra') {
-            priceData = stock.prices.surge;
-        } else {
-            // Check if others are stable or default
-            priceData = (currentQueryType === 'default') ? stock.prices.default : stock.prices.stable;
-        }
+        const priceData = getActivePriceData(stock);
         
         const card = createStockCard(stock, priceData);
         gridContainer.appendChild(card);
@@ -626,6 +618,11 @@ function renderStockGrid() {
         // Draw the sparkline on canvas after it is appended to DOM
         const canvas = card.querySelector('.sparkline-canvas');
         drawSparkline(canvas, priceData.chart, priceData.change >= 0);
+        
+        // If in port view, render P&L immediately
+        if (currentFilter === 'port') {
+            updateStockCardPnL(stock.ticker, priceData);
+        }
     });
 }
 
@@ -642,8 +639,9 @@ function getLow52w(ticker, high52w) {
 
 // Create stock card element
 function createStockCard(stock, priceData) {
+    const isPortView = currentFilter === 'port';
     const card = document.createElement('div');
-    card.className = `glass-card stock-card ${stock.sector}`;
+    card.className = `glass-card stock-card ${stock.sector} ${isPortView ? 'in-port-view' : ''}`;
     card.setAttribute('data-ticker', stock.ticker);
     card.setAttribute('data-sector', stock.sector);
     
@@ -704,6 +702,23 @@ function createStockCard(stock, priceData) {
                 </button>
             </div>
         </div>
+        ${isPortView ? `
+        <div class="port-holding-editor" onclick="event.stopPropagation()">
+            <div class="port-editor-fields">
+                <div class="port-field">
+                    <label>จำนวนหุ้นที่ถือ</label>
+                    <input type="number" class="port-shares-input" data-ticker="${stock.ticker}" min="0" placeholder="0" value="${personalPortDetails[stock.ticker]?.shares || ''}">
+                </div>
+                <div class="port-field">
+                    <label>ต้นทุนต่อหุ้น ($)</label>
+                    <input type="number" class="port-avg-cost-input" data-ticker="${stock.ticker}" min="0" step="any" placeholder="0.00" value="${personalPortDetails[stock.ticker]?.avgCost || ''}">
+                </div>
+            </div>
+            <div class="port-calc-pnl-row" id="pnl-row-${stock.ticker}">
+                <span class="port-empty-calc">กรอกจำนวนและต้นทุนเพื่อคำนวณ P&L</span>
+            </div>
+        </div>
+        ` : ''}
     `;
     
     return card;
@@ -1015,6 +1030,40 @@ function setupEventHandlers() {
                 const ticker = card.getAttribute('data-ticker');
                 const sector = card.getAttribute('data-sector');
                 openStockModal(ticker, sector);
+            }
+        });
+        
+        // Handle real-time portfolio inputs calculation and saving
+        stockGrid.addEventListener('input', (e) => {
+            const sharesInput = e.target.closest('.port-shares-input');
+            const avgCostInput = e.target.closest('.port-avg-cost-input');
+            
+            if (sharesInput || avgCostInput) {
+                const targetInput = sharesInput || avgCostInput;
+                const ticker = targetInput.getAttribute('data-ticker');
+                const card = targetInput.closest('.stock-card');
+                
+                const sharesVal = parseFloat(card.querySelector('.port-shares-input').value) || 0;
+                const avgCostVal = parseFloat(card.querySelector('.port-avg-cost-input').value) || 0;
+                
+                if (!personalPortDetails[ticker]) {
+                    personalPortDetails[ticker] = {};
+                }
+                
+                personalPortDetails[ticker].shares = sharesVal;
+                personalPortDetails[ticker].avgCost = avgCostVal;
+                
+                localStorage.setItem('personalPortDetails', JSON.stringify(personalPortDetails));
+                
+                // Recalculate this specific card's P&L
+                const sector = card.getAttribute('data-sector');
+                const stock = stockDatabase[sector].find(s => s.ticker === ticker);
+                const priceData = getActivePriceData(stock);
+                
+                updateStockCardPnL(ticker, priceData);
+                
+                // Also update the main summary dashboard card if present
+                updatePortSummaryDashboard();
             }
         });
     }
@@ -1431,4 +1480,233 @@ function togglePort(ticker, btnElement) {
     if (currentFilter === 'port') {
         renderStockGrid();
     }
+}
+
+
+// --- PORTFOLIO DYNAMIC HELPERS ---
+
+function getActivePriceData(stock) {
+    if (currentQueryType === 'all-surge') {
+        return stock.prices.surge;
+    } else if (currentQueryType === 'tech' && stock.sector === 'tech') {
+        return stock.prices.surge;
+    } else if (currentQueryType === 'space' && stock.sector === 'space') {
+        return stock.prices.surge;
+    } else if (currentQueryType === 'resource' && stock.sector === 'resource') {
+        return stock.prices.surge;
+    } else if (currentQueryType === 'infra' && stock.sector === 'infra') {
+        return stock.prices.surge;
+    } else {
+        return (currentQueryType === 'default') ? stock.prices.default : stock.prices.stable;
+    }
+}
+
+function createPortSummaryCard(stocks) {
+    let totalCost = 0;
+    let currentValue = 0;
+    let activeHoldingsCount = 0;
+    
+    stocks.forEach(stock => {
+        const holdings = personalPortDetails[stock.ticker];
+        if (holdings && holdings.shares > 0 && holdings.avgCost > 0) {
+            const priceData = getActivePriceData(stock);
+            totalCost += holdings.shares * holdings.avgCost;
+            currentValue += holdings.shares * priceData.current;
+            activeHoldingsCount++;
+        }
+    });
+    
+    const pnlVal = currentValue - totalCost;
+    const pnlPct = totalCost > 0 ? (pnlVal / totalCost) * 100 : 0;
+    
+    const pnlClass = pnlVal >= 0 ? 'positive' : 'negative';
+    const pnlSign = pnlVal >= 0 ? '+' : '';
+    const pnlPctSign = pnlPct >= 0 ? '+' : '';
+    
+    const card = document.createElement('div');
+    card.className = 'glass-card port-summary-dashboard-card';
+    
+    card.innerHTML = `
+        <div class="port-summary-header">
+            <h3><i class="fa-solid fa-chart-pie" style="color: var(--color-space);"></i> สรุปภาพรวมพอร์ตส่วนตัว</h3>
+            <span class="active-holdings-badge">${activeHoldingsCount} หุ้นที่มีการบันทึกต้นทุน</span>
+        </div>
+        <div class="port-summary-metrics-grid">
+            <div class="summary-metric">
+                <span class="metric-lbl">มูลค่าพอร์ตปัจจุบัน</span>
+                <span class="metric-val">$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+            <div class="summary-metric">
+                <span class="metric-lbl">ต้นทุนรวมทั้งหมด</span>
+                <span class="metric-val">$${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+            <div class="summary-metric">
+                <span class="metric-lbl">กำไร/ขาดทุนรวม</span>
+                <span class="metric-val-pnl ${pnlClass}">${pnlSign}$${pnlVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlPctSign}${pnlPct.toFixed(2)}%)</span>
+            </div>
+        </div>
+        <div class="port-summary-actions">
+            <button class="btn-copy-port-ai" onclick="copyPortDataForAI()">
+                <i class="fa-solid fa-robot"></i> คัดลอกข้อมูลสำหรับให้ AI วิเคราะห์พอร์ต
+            </button>
+            <span class="copy-success-toast" id="copySuccessToast">คัดลอกข้อมูลลงคลิปบอร์ดแล้ว! นำไปวางในแชทได้เลย</span>
+        </div>
+    `;
+    
+    return card;
+}
+
+function updatePortSummaryDashboard() {
+    const dashboard = document.querySelector('.port-summary-dashboard-card');
+    if (!dashboard) return;
+    
+    const allStocks = [
+        ...stockDatabase.tech.map(s => ({ ...s, sector: 'tech' })),
+        ...stockDatabase.space.map(s => ({ ...s, sector: 'space' })),
+        ...stockDatabase.resource.map(s => ({ ...s, sector: 'resource' })),
+        ...stockDatabase.infra.map(s => ({ ...s, sector: 'infra' }))
+    ];
+    
+    const portStocksToRender = allStocks.filter(s => portStocks.includes(s.ticker));
+    
+    let totalCost = 0;
+    let currentValue = 0;
+    let activeHoldingsCount = 0;
+    
+    portStocksToRender.forEach(stock => {
+        const holdings = personalPortDetails[stock.ticker];
+        if (holdings && holdings.shares > 0 && holdings.avgCost > 0) {
+            const priceData = getActivePriceData(stock);
+            totalCost += holdings.shares * holdings.avgCost;
+            currentValue += holdings.shares * priceData.current;
+            activeHoldingsCount++;
+        }
+    });
+    
+    const pnlVal = currentValue - totalCost;
+    const pnlPct = totalCost > 0 ? (pnlVal / totalCost) * 100 : 0;
+    
+    const pnlClass = pnlVal >= 0 ? 'positive' : 'negative';
+    const pnlSign = pnlVal >= 0 ? '+' : '';
+    const pnlPctSign = pnlPct >= 0 ? '+' : '';
+    
+    const valText = dashboard.querySelector('.summary-metric:nth-child(1) .metric-val');
+    const costText = dashboard.querySelector('.summary-metric:nth-child(2) .metric-val');
+    const pnlText = dashboard.querySelector('.summary-metric:nth-child(3) .metric-val-pnl');
+    const badge = dashboard.querySelector('.active-holdings-badge');
+    
+    if (valText) valText.textContent = `$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (costText) costText.textContent = `$${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (pnlText) {
+        pnlText.textContent = `${pnlSign}$${pnlVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlPctSign}${pnlPct.toFixed(2)}%)`;
+        pnlText.className = `metric-val-pnl ${pnlClass}`;
+    }
+    if (badge) badge.textContent = `${activeHoldingsCount} หุ้นที่มีการบันทึกต้นทุน`;
+}
+
+function updateStockCardPnL(ticker, priceData) {
+    const card = document.querySelector(`.stock-card[data-ticker="${ticker}"]`);
+    if (!card) return;
+    
+    const sharesInput = card.querySelector('.port-shares-input');
+    const avgCostInput = card.querySelector('.port-avg-cost-input');
+    const pnlRow = card.querySelector('.port-calc-pnl-row');
+    
+    if (!sharesInput || !avgCostInput || !pnlRow) return;
+    
+    const shares = parseFloat(sharesInput.value) || 0;
+    const avgCost = parseFloat(avgCostInput.value) || 0;
+    const currentPrice = priceData.current;
+    
+    if (shares <= 0 || avgCost <= 0) {
+        pnlRow.innerHTML = `<span class="port-empty-calc">กรอกจำนวนและต้นทุนเพื่อคำนวณ P&L</span>`;
+        return;
+    }
+    
+    const totalCost = shares * avgCost;
+    const currentValue = shares * currentPrice;
+    const pnlVal = currentValue - totalCost;
+    const pnlPct = ((currentPrice - avgCost) / avgCost) * 100;
+    
+    const pnlClass = pnlVal >= 0 ? 'positive' : 'negative';
+    const pnlSign = pnlVal >= 0 ? '+' : '';
+    const pnlPctSign = pnlPct >= 0 ? '+' : '';
+    
+    pnlRow.innerHTML = `
+        <div class="pnl-metric">
+            <span class="pnl-lbl">มูลค่าปัจจุบัน:</span>
+            <span class="pnl-val">$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>
+        <div class="pnl-metric">
+            <span class="pnl-lbl">กำไร/ขาดทุน:</span>
+            <span class="pnl-val-pct ${pnlClass}">${pnlSign}$${pnlVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlPctSign}${pnlPct.toFixed(2)}%)</span>
+        </div>
+    `;
+}
+
+function copyPortDataForAI() {
+    const allStocks = [
+        ...stockDatabase.tech.map(s => ({ ...s, sector: 'tech' })),
+        ...stockDatabase.space.map(s => ({ ...s, sector: 'space' })),
+        ...stockDatabase.resource.map(s => ({ ...s, sector: 'resource' })),
+        ...stockDatabase.infra.map(s => ({ ...s, sector: 'infra' }))
+    ];
+    
+    const portStocksToRender = allStocks.filter(s => portStocks.includes(s.ticker));
+    
+    let totalCost = 0;
+    let currentValue = 0;
+    let holdingsText = '';
+    
+    portStocksToRender.forEach((stock, idx) => {
+        const holdings = personalPortDetails[stock.ticker];
+        const priceData = getActivePriceData(stock);
+        const shares = holdings ? parseFloat(holdings.shares) || 0 : 0;
+        const avgCost = holdings ? parseFloat(holdings.avgCost) || 0 : 0;
+        
+        if (shares > 0 && avgCost > 0) {
+            const cost = shares * avgCost;
+            const val = shares * priceData.current;
+            const pnl = val - cost;
+            const pnlPct = ((priceData.current - avgCost) / avgCost) * 100;
+            
+            totalCost += cost;
+            currentValue += val;
+            
+            const pnlSign = pnl >= 0 ? '+' : '';
+            const pnlPctSign = pnlPct >= 0 ? '+' : '';
+            
+            holdingsText += `${idx + 1}. **${stock.ticker}** (${stock.name}): ถือครอง ${shares} หุ้น | ต้นทุนเฉลี่ย $${avgCost.toFixed(2)}/หุ้น (ต้นทุนรวม $${cost.toFixed(2)}) | ราคาปัจจุบัน $${priceData.current.toFixed(2)}/หุ้น (มูลค่าปัจจุบัน $${val.toFixed(2)}) | กำไร/ขาดทุน: ${pnlSign}$${pnl.toFixed(2)} (${pnlPctSign}${pnlPct.toFixed(2)}%)\n`;
+        } else {
+            holdingsText += `${idx + 1}. **${stock.ticker}** (${stock.name}): ยังไม่ได้ระบุราคาต้นทุนเฉลี่ยและจำนวนหุ้น\n`;
+        }
+    });
+    
+    const totalPnL = currentValue - totalCost;
+    const totalPnLPct = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0;
+    
+    const totalPnLSign = totalPnL >= 0 ? '+' : '';
+    const totalPnLPctSign = totalPnLPct >= 0 ? '+' : '';
+    
+    const aiText = `สรุปข้อมูลพอร์ตส่วนตัวของฉันสำหรับให้ AI ประมวลผลและแนะนำแนวทาง:
+- **มูลค่าพอร์ตรวมปัจจุบัน**: $${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+- **ต้นทุนรวมทั้งหมด**: $${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+- **กำไร/ขาดทุนรวมทั้งหมด**: ${totalPnLSign}$${totalPnL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${totalPnLPctSign}${totalPnLPct.toFixed(2)}%)
+
+**รายละเอียดรายหุ้นในพอร์ต:**
+${holdingsText}
+ช่วยประมวลผลพอร์ตนี้ให้หน่อยว่าแต่ละตัวมีสถานะกำไร/ขาดทุนอย่างไร และจากสถานการณ์ภูมิรัฐศาสตร์และความตึงเครียด U.S.-Iran ในปลายเดือนมิถุนายน 2026 นี้ (ที่ราคาน้ำมันพุ่งทะลุ $105 และมีความตึงเครียดทางทหารรอบใหม่) ฉันควรจะทำอย่างไรต่อกับหุ้นแต่ละตัวในพอร์ตนี้ดี? (เช่น ควรซื้อเฉลี่ยเพิ่ม, ถือยาวเพื่อรอดูสถานการณ์, หรือทยอยขายล็อกกำไรในส่วนใดบ้าง?)`;
+
+    navigator.clipboard.writeText(aiText).then(() => {
+        const toast = document.getElementById('copySuccessToast');
+        if (toast) {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    }).catch(err => {
+        console.error('Could not copy text: ', err);
+        alert('ไม่สามารถคัดลอกข้อมูลอัตโนมัติได้ กรุณาคัดลอกข้อความเพื่อส่งต่อ');
+    });
 }
